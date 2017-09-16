@@ -22,6 +22,7 @@ public class GameController {
     public static final String INVALID_PLAYER_ID = "INVALID_PLAYER_ID";
     public static final String INCORRECT_TURNS = "INCORRECT_TURNS";
     public static final String ILLEGAL_MOVE = "ILLEGAL_MOVE";
+    public static final String MALFORMED_REQUEST = "MALFORMED_REQUEST";
     public static final String SUCCESS = "SUCCESS";
 
 
@@ -40,8 +41,15 @@ public class GameController {
                 response.status(201);
                 return ret_game;
             } catch (GameService.GameServiceException ex) {
-                logger.error("Failed to create new game"+ ex.getCause());
-                response.status(500);
+                if (ex.getMessage().equals("GameService.newGame: " + MALFORMED_REQUEST)) {
+                    logger.error("Failed to new the game, MALFORMED_REQUEST");
+                    response.status(400);
+                    return Collections.EMPTY_MAP;
+                }
+                else {
+                    logger.error("Failed to create new game" + ex.getCause());
+                    response.status(500);
+                }
             }
             return Collections.EMPTY_MAP;
         }, new JsonTransformer());
@@ -51,7 +59,7 @@ public class GameController {
          */
         put(API_CONTEXT + "/games/:gameId", "application/json", (request, response) -> {
             try {
-                //Todo (delete) finall: if 0, illegal; if 2, second joined; else, join
+                //Todo (delete) final: if 0, illegal; if 2, second joined; else, join
                 List<Game> games =  gameService.gameFindAll(request.params(":gameId"));
                 //invalid game Id
                 if (games.size() == 0){

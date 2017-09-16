@@ -70,6 +70,11 @@ public class GameService {
         Board board = new Board("null", 0, 4, 1, 1, 0, 0, 1, 1, 2);
         State state = new State("null", State.WAITING_FOR_SECOND_PLAYER);
 
+        //Check if it is a MALFORMED_REQUEST
+        String pieceType = game.getPieceType();
+        if (!pieceType.equals("HOUND") && !pieceType.equals("HARE"))
+            throw new GameService.GameServiceException("GameService.newGame: " + GameController.MALFORMED_REQUEST);
+
         //generate a UUID as the gameId
         UUID uuid = UUID.randomUUID();
         String gameId = uuid.toString();
@@ -163,26 +168,30 @@ public class GameService {
         Game game = new Game();
         String playerId = player.getPlayerId();
 
-        //Check whether gameId, playerId is invalid
-        /*
-        **
-        */
+        /**
+        **Check whether gameId, playerId is invalid
+        **/
         List<Game> games = gameFindAll(gameId);
-        if (games.size() == 1) {
-            throw new GameService.GameServiceException("GameService.playGame: " + GameController.INCORRECT_TURNS);
-        }
-        else if(games.size() != 2)
+        if (games.size() == 0){
             throw new GameService.GameServiceException("GameService.playGame: " + GameController.INVALID_GAME_ID);
-        for (Game tmpGame : games){
-            if (tmpGame.getPlayerId().equals(player.getPlayerId()))
-                game = tmpGame;
         }
-        if (game == null)
-            throw new GameService.GameServiceException("GameService.playGame: " + GameController.INVALID_PLAYER_ID);
+        else{
+            for (Game tmpGame : games){
+                if (tmpGame.getPlayerId().equals(player.getPlayerId()))
+                    game = tmpGame;
+            }
+            if (game == null)
+                throw new GameService.GameServiceException("GameService.playGame: " + GameController.INVALID_PLAYER_ID);
+            if (games.size() == 1) {
+                throw new GameService.GameServiceException("GameService.playGame: " + GameController.INCORRECT_TURNS);
+            }
+            else if(games.size() > 2)
+                throw new GameService.GameServiceException("GameService.playGame: " + GameController.INVALID_GAME_ID);
+        }
 
-        /*
+        /**
         **Check if it is an invalid turn
-        */
+        **/
         State state = stateFind(gameId);
         if (!state.getState().equals("TURN_" + game.getPieceType()))
             throw new GameService.GameServiceException("GameService.playGame: " + GameController.INCORRECT_TURNS);
@@ -194,12 +203,13 @@ public class GameService {
         String preHound2 = String.valueOf(board.gethoundX2()) + String.valueOf(board.gethoundY2());
         String preHound3 = String.valueOf(board.gethoundX3()) + String.valueOf(board.gethoundY3());
 
-        /*
+        /**
         **Check if it is illegal move
         **If is, throw exception
         **If not, Insert the new board into table, Check whether a player wins, Update the state
-        */
-        //If If TURN_HARE
+        **/
+
+        /** If TURN_HARE **/
         if (game.getPieceType().equals("HARE")){
             //check if is the hate's position on the board
             if (board.getHareX() == player.getFromX() && board.getHareY() == player.getFromY()){
@@ -209,8 +219,9 @@ public class GameService {
                 if (Math.abs(player.getFromX() - player.getToX()) <= 1
                         && Math.abs(player.getFromY() - player.getToY()) <= 1
                         && !preHare.equals(curHare) && !curHare.equals(preHound1)
-                        //&& !curHare.equals("00") && !curHare.equals("02") && !curHare.equals("40") && !curHare.equals("42")
-                         && !curHare.equals(preHound2) && !curHare.equals(preHound3)){
+                        && !curHare.equals(preHound2) && !curHare.equals(preHound3)
+                        && !curHare.equals("00") && !curHare.equals("02") && !curHare.equals("40") && !curHare.equals("42")
+                        && player.getToY() >= 0 && player.getToY() <= 2 && player.getToX() >= 0 && player.getToX() <= 4){
 
                     //Insert the new board into board table
                     board.setBoardNumber(board.getBoardNumber() + 1);
@@ -243,7 +254,7 @@ public class GameService {
                 }
             }
         else {
-            //If TURN_HOUND
+            /** If TURN_HOUND **/
             String fromHound = String.valueOf(player.getFromX()) + String.valueOf(player.getFromY());
             String toHound = String.valueOf(player.getToX()) + String.valueOf(player.getToY());
             int whichHound = -1;
@@ -259,7 +270,9 @@ public class GameService {
                 if ( player.getToX() - player.getFromX() <= 1 && player.getToX() - player.getFromX() >= 0
                         && Math.abs(player.getFromY() - player.getToY()) <= 1
                         && !toHound.equals(preHare) && !toHound.equals(preHound1)
-                        && !toHound.equals(preHound2) && !toHound.equals(preHound3)){
+                        && !toHound.equals(preHound2) && !toHound.equals(preHound3)
+                        && !toHound.equals("00") && !toHound.equals("02") && !toHound.equals("40") && !toHound.equals("42")
+                        && player.getToY() >= 0 && player.getToY() <= 2 && player.getToX() >= 0 && player.getToX() <= 4){
 
                     //Insert new board into table board
                     int newBoardNumber = board.getBoardNumber() + 1;
