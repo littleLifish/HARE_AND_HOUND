@@ -87,7 +87,7 @@ public class GameController {
         post(API_CONTEXT + "/games/:gameId/turns", "application/json", (request, response) -> {
             try {
                 String playerId = gameService.play(request.params(":gameId"), request.body());
-                response.status(201);
+                response.status(200);
                 HashMap<String,String> map = new HashMap<String,String>();
                 map.put("playerId", playerId);
                 return map;
@@ -127,42 +127,6 @@ public class GameController {
                 }
             }
         }, new JsonTransformer());
-        /*
-        //Todo , play: update board and state
-        post(API_CONTEXT + "/games/:gameId/turns", "application/json", (request, response) -> {
-            try {
-                String gameDescription = gameService.play(request.params(":gameId"), request.body());
-                if (gameDescription.equals(SUCCESS)){
-                    String test = request.body();
-                }
-                response.status(201);
-                HashMap<String,String> map = new HashMap<String,String>();
-                map.put("playerId", playerId);
-                return map;
-            } catch (GameService.GameServiceException ex) {
-                if (ex.getMessage().equals("")){
-                    HashMap<String,String> map = new HashMap<String,String>();
-                    map.put("reason","INVALID_GAME_ID");
-                    logger.error("Failed to play the game, INVALID_GAME_ID");
-                    response.status(404);
-                    return map;
-                }
-                else if (ex.getMessage().equals("")){
-                    HashMap<String,String> map = new HashMap<String,String>();
-                    map.put("reason","INVALID_PLAYER_ID");
-                    logger.error("Failed to play the game, INVALID_PLAYER_ID");
-                    response.status(404);
-                    return map;
-                }
-                else {
-                    logger.error("Failed to play the game");
-                    response.status(500);
-                    return Collections.EMPTY_MAP;
-                }
-            }
-        }, new JsonTransformer());
-        */
-
 
         /**
          * Get the game board.

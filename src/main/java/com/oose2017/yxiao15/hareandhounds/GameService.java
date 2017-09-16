@@ -458,8 +458,8 @@ public class GameService {
                 throw new GameServiceException(String.format("GameService.update: Table state. Update operation did not update rows. Incorrect id (?): %s", gameId), null);
             }
         } catch(Sql2oException ex) {
-            logger.error(String.format("TodoService.update: Failed to update state table for id: %s", gameId), ex);
-            throw new GameServiceException(String.format("TodoService.update: Failed to update database table state for id: %s", gameId), ex);
+            logger.error(String.format("GameService.update: Failed to update state table for id: %s", gameId), ex);
+            throw new GameServiceException(String.format("GameService.update: Failed to update database table state for id: %s", gameId), ex);
         }
 
     }

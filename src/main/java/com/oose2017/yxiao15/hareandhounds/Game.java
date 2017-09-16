@@ -78,30 +78,6 @@ public class Game {
         this.y2 = y2;
     }
 */
-    /*
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Todo todo = (Todo) o;
-
-        if (done != todo.done) return false;
-        if (id != null ? !id.equals(todo.id) : todo.id != null) return false;
-        if (title != null ? !title.equals(todo.title) : todo.title != null) return false;
-        return !(createdOn != null ? !createdOn.equals(todo.createdOn) : todo.createdOn != null);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (title != null ? title.hashCode() : 0);
-        result = 31 * result + (done ? 1 : 0);
-        result = 31 * result + (createdOn != null ? createdOn.hashCode() : 0);
-        return result;
-    }
-    */
 
     @Override
     public String toString() {
