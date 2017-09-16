@@ -71,9 +71,14 @@ public class GameService {
         State state = new State("null", State.WAITING_FOR_SECOND_PLAYER);
 
         //Check if it is a MALFORMED_REQUEST
-        String pieceType = game.getPieceType();
-        if (!pieceType.equals("HOUND") && !pieceType.equals("HARE"))
-            throw new GameService.GameServiceException("GameService.newGame: " + GameController.MALFORMED_REQUEST);
+        try{
+            String pieceType = game.getPieceType();
+            if (!pieceType.equals("HOUND") && !pieceType.equals("HARE"))
+                throw new GameService.GameServiceException("GameService.newGame: " + GameController.MALFORMED_REQUEST);
+        }
+        catch (Exception ex) {
+            throw new GameServiceException("GameService.newGame: " + GameController.MALFORMED_REQUEST);
+            }
 
         //generate a UUID as the gameId
         UUID uuid = UUID.randomUUID();
@@ -130,34 +135,46 @@ public class GameService {
     /**
      * Join a Game.
      */
-    public Game joinGame(String gameId, String pieceType01) throws GameService.GameServiceException {
-        //get the pieceType from Json
+    public Game joinGame(String gameId) throws GameService.GameServiceException {
         Game game = new Game();
         State state = new State(gameId, State.TURN_HOUND);
 
         game.setGameId(gameId);
         game.setPlayerId("02");
-        if (pieceType01.equals("HOUND"))
-            game.setPieceType("HARE");
-        else
-            game.setPieceType("HOUND");
 
-        //Insert the second player
-        String sql_game = "INSERT INTO game (game_id, player_id, pieceType) " +
-                "             VALUES (:gameId, :playerId, :pieceType)" ;
-
-        try (Connection conn = db.open()) {
-            conn.createQuery(sql_game)
-                    .bind(game)
-                    .executeUpdate();
-        } catch(Sql2oException ex) {
-            logger.error("GameService.createNewGame: Failed to join the second player", ex);
-            throw new GameService.GameServiceException("GameService.joinGame: Failed to join the second player", ex);
+        List<Game> games = gameFindAll(gameId);
+        //Check invalid gameId and second player
+        if (games.size() == 2) {
+            throw new GameService.GameServiceException("GameService.joinGame: " + GameController.SECOND_PLAYER_ALREADY_JOINED);
         }
+        else if (games.size() == 1) {
+            Game game01 = games.get(0);
+            String pieceType01 = game01.getPieceType();
+            if (pieceType01.equals("HOUND"))
+                game.setPieceType("HARE");
+            else
+                game.setPieceType("HOUND");
 
-        //Update the game state to TURN_HOUND
-        stateUpdate(state);
-        return game;
+            //Insert the second player
+            String sql_game = "INSERT INTO game (game_id, player_id, pieceType) " +
+                    "             VALUES (:gameId, :playerId, :pieceType)" ;
+
+            try (Connection conn = db.open()) {
+                conn.createQuery(sql_game)
+                        .bind(game)
+                        .executeUpdate();
+            } catch(Sql2oException ex) {
+                logger.error("GameService.createNewGame: Failed to join the second player", ex);
+                throw new GameService.GameServiceException("GameService.joinGame: Failed to join the second player", ex);
+            }
+
+            //Update the game state to TURN_HOUND
+            stateUpdate(state);
+            return game;
+        }
+        else {
+            throw new GameService.GameServiceException("GameService.joinGame: " + GameController.INVALID_GAME_ID);
+        }
     }
 
     /**
@@ -166,7 +183,15 @@ public class GameService {
     public String play(String gameId, String body) throws GameService.GameServiceException {
         Player player = new Gson().fromJson(body, Player.class);
         Game game = new Game();
-        String playerId = player.getPlayerId();
+        String playerId = "null";
+
+        //Check if it is a MALFORMED_REQUEST
+        try{
+            playerId = player.getPlayerId();
+        }
+        catch (Exception ex) {
+            throw new GameServiceException("GameService.newGame: " + GameController.MALFORMED_REQUEST);
+        }
 
         /**
         **Check whether gameId, playerId is invalid
@@ -180,7 +205,7 @@ public class GameService {
                 if (tmpGame.getPlayerId().equals(player.getPlayerId()))
                     game = tmpGame;
             }
-            if (game == null)
+            if (game.getGameId() == null)
                 throw new GameService.GameServiceException("GameService.playGame: " + GameController.INVALID_PLAYER_ID);
             if (games.size() == 1) {
                 throw new GameService.GameServiceException("GameService.playGame: " + GameController.INCORRECT_TURNS);

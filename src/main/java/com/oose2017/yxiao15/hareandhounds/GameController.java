@@ -23,6 +23,7 @@ public class GameController {
     public static final String INCORRECT_TURNS = "INCORRECT_TURNS";
     public static final String ILLEGAL_MOVE = "ILLEGAL_MOVE";
     public static final String MALFORMED_REQUEST = "MALFORMED_REQUEST";
+    public static final String SECOND_PLAYER_ALREADY_JOINED = "SECOND_PLAYER_ALREADY_JOINED";
     public static final String SUCCESS = "SUCCESS";
 
 
@@ -47,7 +48,8 @@ public class GameController {
                     return Collections.EMPTY_MAP;
                 }
                 else {
-                    logger.error("Failed to create new game" + ex.getCause());
+                    System.out.println("Failed to create new game" + ex.getCause() + ex.getMessage());
+                    logger.error("Failed to create new game" + ex.getCause() + ex.getMessage());
                     response.status(500);
                 }
             }
@@ -57,6 +59,30 @@ public class GameController {
         /**
          * Join the game
          */
+        put(API_CONTEXT + "/games/:gameId", "application/json", (request, response) -> {
+            try {
+                Game game = gameService.joinGame(request.params(":gameId"));
+                response.status(200);
+                return game;
+            } catch (GameService.GameServiceException ex) {
+                if (ex.getMessage().equals("GameService.joinGame: " + INVALID_GAME_ID)){
+                    logger.error("Failed to join the game, INVALID_GAME_ID");
+                    response.status(404);
+                    return Collections.EMPTY_MAP;
+                }
+                else if (ex.getMessage().equals("GameService.joinGame: " + SECOND_PLAYER_ALREADY_JOINED)){
+                    logger.error("Failed to join the game, SECOND_PLAYER_ALREADY_JOINED");
+                    response.status(410);
+                    return Collections.EMPTY_MAP;
+                }
+                else{
+                    logger.error(String.format("Failed to join the game with id: %s", request.params(":gameId")));
+                    response.status(500);
+                    return Collections.EMPTY_MAP;
+                }
+            }
+        }, new JsonTransformer());
+        /*
         put(API_CONTEXT + "/games/:gameId", "application/json", (request, response) -> {
             try {
                 //Todo (delete) final: if 0, illegal; if 2, second joined; else, join
@@ -87,6 +113,7 @@ public class GameController {
                 return Collections.EMPTY_MAP;
             }
         }, new JsonTransformer());
+        */
 
         /**
          * Play the game.
@@ -121,12 +148,17 @@ public class GameController {
                     response.status(422);
                     return map;
                 }
-                else if (ex.getMessage().equals("GameService.playGame: " + GameController.ILLEGAL_MOVE)){
+                else if (ex.getMessage().equals("GameService.playGame: " + ILLEGAL_MOVE)){
                     HashMap<String,String> map = new HashMap<String,String>();
                     map.put("reason","ILLEGAL_MOVE");
                     logger.error("Failed to play the game, ILLEGAL_MOVE");
                     response.status(422);
                     return map;
+                }
+                else if (ex.getMessage().equals("GameService.playGame: " + MALFORMED_REQUEST)){
+                    logger.error("Failed to play the game, MALFORMED_REQUEST");
+                    response.status(400);
+                    return Collections.EMPTY_MAP;
                 }
                 else {
                     logger.error("Failed to play the game" + ex.getCause());
