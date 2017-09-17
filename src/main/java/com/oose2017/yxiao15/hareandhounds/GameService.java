@@ -9,6 +9,7 @@ import org.sql2o.Sql2oException;
 
 import java.util.UUID;
 import java.util.List;
+import java.util.ArrayList;
 
 import javax.sql.DataSource;
 
@@ -230,7 +231,7 @@ public class GameService {
 
         /**
         **Check if it is illegal move
-        **If is, throw exception
+        **If yes, throw exception
         **If not, Insert the new board into table, Check whether a player wins, Update the state
         **/
 
@@ -266,7 +267,6 @@ public class GameService {
                         state.setState(State.TURN_HOUND);
                         stateUpdate(state);
                     }
-
                 }
                 else {
                         logger.error("GameService.playGame: " + GameController.ILLEGAL_MOVE);
@@ -325,28 +325,83 @@ public class GameService {
                     }
 
                     //Todo
-                    /*
+                    /**
                     * Check whether the hound wins
-                    * --Check whether HARE is trapped,
                     * --Check whether the same board position occurs three times
-                    */
-                    //List<Board> boards = boardFindALL(gameId);
-                    /*
-                    if (){
-                        state.setState(State.WIN_HOUND);
+                    * --Check whether HARE is trapped,
+                    **/
+                    String curHound1 = String.valueOf(board.gethoundX1()) + String.valueOf(board.gethoundY1());
+                    String curHound2 = String.valueOf(board.gethoundX2()) + String.valueOf(board.gethoundY2());
+                    String curHound3 = String.valueOf(board.gethoundX3()) + String.valueOf(board.gethoundY3());
+                    /** Check whether the same board position occurs three times**/
+                    List<Board> boards = boardFindALLSame(gameId, board.getHareX(), board.getHareY());
+                    int sameBoard = 1;
+                    for (Board tmpBoard: boards){
+                        String tmpHound1 = String.valueOf(tmpBoard.gethoundX1()) + String.valueOf(tmpBoard.gethoundY1());
+                        String tmpHound2 = String.valueOf(tmpBoard.gethoundX2()) + String.valueOf(tmpBoard.gethoundY2());
+                        String tmpHound3 = String.valueOf(tmpBoard.gethoundX3()) + String.valueOf(tmpBoard.gethoundY3());
+
+                        /*((curHound1.equals(tmpHound1) && curHound2.equals(tmpHound2) && curHound3.equals(tmpHound3))
+                                || (curHound1.equals(tmpHound1) && curHound3.equals(tmpHound2) && curHound2.equals(tmpHound3))
+                                || (curHound2.equals(tmpHound1) && curHound1.equals(tmpHound2) && curHound3.equals(tmpHound3))
+                                || (curHound2.equals(tmpHound1) && curHound3.equals(tmpHound2) && curHound1.equals(tmpHound3))
+                                || (curHound3.equals(tmpHound1) && curHound1.equals(tmpHound2) && curHound2.equals(tmpHound3))
+                                || (curHound3.equals(tmpHound1) && curHound2.equals(tmpHound2) && curHound1.equals(tmpHound3)))*/
+
+                        if (isSame(curHound1, curHound2, curHound3, tmpHound1, tmpHound2, tmpHound3)){
+                            sameBoard += 1;
+                        }
+                    }
+                    if (sameBoard >= 3){
+                        /** Update the state to the WIN_HARE_BY_STALLING**/
                         state.setState(State.WIN_HARE_BY_STALLING);
-                        stateUpdate(state);
                     }
                     else{
-                        //Update state
-                        state.setState(State.TURN_HARE);
-                        stateUpdate(state);
-                    }
-                    */
-                    //Update state
-                    state.setState(State.TURN_HARE);
-                    stateUpdate(state);
+                        /** Check whether HARE is trapped **/
+                        String curHare = String.valueOf(board.getHareX()) + String.valueOf(board.getHareY());
+                        String nextHare1 = "null";
+                        String nextHare2 = "null";
+                        String nextHare3 = "null";
+                        Boolean maybeTrapped = Boolean.FALSE;
 
+                        switch (curHare) {
+                            case "20":
+                                maybeTrapped = Boolean.TRUE;
+                                nextHare1 = "10";
+                                nextHare2 = "21";
+                                nextHare3 = "30";
+                                break;
+                            case "22":
+                                maybeTrapped = Boolean.TRUE;
+                                nextHare1 = "12";
+                                nextHare2 = "21";
+                                nextHare3 = "32";
+                                break;
+                            case "41":
+                                maybeTrapped = Boolean.TRUE;
+                                nextHare1 = "30";
+                                nextHare2 = "31";
+                                nextHare3 = "32";
+                                break;
+                            default:
+                                break;
+                        }
+                        if (maybeTrapped) {
+                            if (isSame(nextHare1, nextHare2, nextHare3, curHound1, curHound2, curHound3)){
+                                /** Update the state to the WIN_HOUND**/
+                                state.setState(State.WIN_HOUND);
+                            }
+                            else {
+                                /** Update the state to the TURN_HARE**/
+                                state.setState(State.TURN_HARE);
+                            }
+                        }
+                        else {
+                            /** Update the state to the TURN_HARE**/
+                            state.setState(State.TURN_HARE);
+                        }
+                    }
+                    stateUpdate(state);
                 }
                 else {
                     logger.error("GameService.playGame: " + GameController.ILLEGAL_MOVE);
@@ -384,6 +439,22 @@ public class GameService {
             return state;
         else
             return null;
+    }
+
+    /**
+     * Check whether one of the permutations of (A1,A2,A3) is equal to (B1,B2,B3)
+     */
+    private Boolean isSame(String a1, String a2, String a3, String b1, String b2, String b3){
+        if ((a1.equals(b1) && a2.equals(b2) && a3.equals(b3))
+                || (a1.equals(b1) && a3.equals(b2) && a2.equals(b3))
+                || (a2.equals(b1) && a1.equals(b2) && a3.equals(b3))
+                || (a2.equals(b1) && a3.equals(b2) && a1.equals(b3))
+                || (a3.equals(b1) && a1.equals(b2) && a2.equals(b3))
+                || (a3.equals(b1) && a2.equals(b2) && a1.equals(b3))){
+            return Boolean.TRUE;
+        }
+        else
+            return Boolean.FALSE;
     }
 
     //-----------------------------------------------------------------------------//
@@ -430,11 +501,13 @@ public class GameService {
         }
     }
 
-    public List<Board> boardFindALL(String gameId)throws GameService.GameServiceException {
-        String sql = "SELECT * FROM board WHERE game_id = :gameId" ;
+    public List<Board> boardFindALLSame(String gameId, int hareX, int hareY)throws GameService.GameServiceException {
+        String sql = "SELECT * FROM board WHERE game_id = :gameId AND hare_x = :hareX AND hare_y = :hareY" ;
         try (Connection conn = db.open()) {
             List<Board> boards =  conn.createQuery(sql)
                     .addParameter("gameId", gameId)
+                    .addParameter("hare_x", hareX)
+                    .addParameter("hare_y", hareY)
                     .addColumnMapping("game_id", "gameId")
                     .addColumnMapping("board_number", "boardNumber")
                     .addColumnMapping("hare_x", "hareX")
