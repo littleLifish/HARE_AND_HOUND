@@ -506,8 +506,8 @@ public class GameService {
         try (Connection conn = db.open()) {
             List<Board> boards =  conn.createQuery(sql)
                     .addParameter("gameId", gameId)
-                    .addParameter("hare_x", hareX)
-                    .addParameter("hare_y", hareY)
+                    .addParameter("hareX", hareX)
+                    .addParameter("hareY", hareY)
                     .addColumnMapping("game_id", "gameId")
                     .addColumnMapping("board_number", "boardNumber")
                     .addColumnMapping("hare_x", "hareX")
