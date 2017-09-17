@@ -51,18 +51,6 @@ public class GameService {
     }
 
     /**
-     * Fetch all game entries in the list
-     *
-     * @return List of all game entries
-     */
-    /*
-    public List<Game> findAll() throws GameService.GameServiceException {
-       //Todo
-        return game;
-    }
-    */
-
-    /**
      * Create a new Game entry.
      */
     public Game createNewGame(String body) throws GameService.GameServiceException {
@@ -335,7 +323,7 @@ public class GameService {
                     String curHound3 = String.valueOf(board.gethoundX3()) + String.valueOf(board.gethoundY3());
                     /** Check whether the same board position occurs three times**/
                     List<Board> boards = boardFindALLSame(gameId, board.getHareX(), board.getHareY());
-                    int sameBoard = 1;
+                    int sameBoard = 0;
                     for (Board tmpBoard: boards){
                         String tmpHound1 = String.valueOf(tmpBoard.gethoundX1()) + String.valueOf(tmpBoard.gethoundY1());
                         String tmpHound2 = String.valueOf(tmpBoard.gethoundX2()) + String.valueOf(tmpBoard.gethoundY2());
