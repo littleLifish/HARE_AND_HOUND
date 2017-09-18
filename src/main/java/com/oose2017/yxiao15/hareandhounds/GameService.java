@@ -9,7 +9,6 @@ import org.sql2o.Sql2oException;
 
 import java.util.UUID;
 import java.util.List;
-import java.util.ArrayList;
 
 import javax.sql.DataSource;
 
@@ -218,7 +217,7 @@ public class GameService {
         String preHound3 = String.valueOf(board.gethoundX3()) + String.valueOf(board.gethoundY3());
 
         /**
-        **Check if it is illegal move
+        **Check if it is a illegal move
         **If yes, throw exception
         **If not, Insert the new board into table, Check whether a player wins, Update the state
         **/
@@ -228,6 +227,7 @@ public class GameService {
             //check if is the hate's position on the board
             if (board.getHareX() == player.getFromX() && board.getHareY() == player.getFromY()){
                 String curHare = String.valueOf(player.getToX()) + String.valueOf(player.getToY());
+
                 //check if X-x<=1, Y-y<=1, (X,Y) != (x,y), (X,Y) != FOUR_Empty_Cells,
                 //check (X,Y) != other hounds' positions on the board
                 if (Math.abs(player.getFromX() - player.getToX()) <= 1
@@ -312,7 +312,6 @@ public class GameService {
                             break;
                     }
 
-                    //Todo
                     /**
                     * Check whether the hound wins
                     * --Check whether the same board position occurs three times
@@ -328,13 +327,6 @@ public class GameService {
                         String tmpHound1 = String.valueOf(tmpBoard.gethoundX1()) + String.valueOf(tmpBoard.gethoundY1());
                         String tmpHound2 = String.valueOf(tmpBoard.gethoundX2()) + String.valueOf(tmpBoard.gethoundY2());
                         String tmpHound3 = String.valueOf(tmpBoard.gethoundX3()) + String.valueOf(tmpBoard.gethoundY3());
-
-                        /*((curHound1.equals(tmpHound1) && curHound2.equals(tmpHound2) && curHound3.equals(tmpHound3))
-                                || (curHound1.equals(tmpHound1) && curHound3.equals(tmpHound2) && curHound2.equals(tmpHound3))
-                                || (curHound2.equals(tmpHound1) && curHound1.equals(tmpHound2) && curHound3.equals(tmpHound3))
-                                || (curHound2.equals(tmpHound1) && curHound3.equals(tmpHound2) && curHound1.equals(tmpHound3))
-                                || (curHound3.equals(tmpHound1) && curHound1.equals(tmpHound2) && curHound2.equals(tmpHound3))
-                                || (curHound3.equals(tmpHound1) && curHound2.equals(tmpHound2) && curHound1.equals(tmpHound3)))*/
 
                         if (isSame(curHound1, curHound2, curHound3, tmpHound1, tmpHound2, tmpHound3)){
                             sameBoard += 1;

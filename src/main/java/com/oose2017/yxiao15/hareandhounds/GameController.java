@@ -24,7 +24,6 @@ public class GameController {
     public static final String ILLEGAL_MOVE = "ILLEGAL_MOVE";
     public static final String MALFORMED_REQUEST = "MALFORMED_REQUEST";
     public static final String SECOND_PLAYER_ALREADY_JOINED = "SECOND_PLAYER_ALREADY_JOINED";
-    public static final String SUCCESS = "SUCCESS";
 
 
     public GameController(GameService gameService) {
@@ -82,43 +81,11 @@ public class GameController {
                 }
             }
         }, new JsonTransformer());
-        /*
-        put(API_CONTEXT + "/games/:gameId", "application/json", (request, response) -> {
-            try {
-                //Todo (delete) final: if 0, illegal; if 2, second joined; else, join
-                List<Game> games =  gameService.gameFindAll(request.params(":gameId"));
-                //invalid game Id
-                if (games.size() == 0){
-                    logger.error(String.format("Invalid game Id: %s", request.params(":gameId")));
-                    response.status(404);
-                    return Collections.EMPTY_MAP;
-                }
-                //Second player already joined
-                else if (games.size() >= 2){
-                    logger.error(String.format("Second player already joined the game: %s", request.params(":gameId")));
-                    response.status(410);
-                    return Collections.EMPTY_MAP;
-                }
-                else {
-                    //Join in the game
-                    String pieceType_01 = games.get(0).getPieceType();
-                    Game game = gameService.joinGame(request.params(":gameId"), pieceType_01);
-                    response.status(200);
-                    return game;
-                }
-            } catch (GameService.GameServiceException ex) {
-                //Todo 也许要考虑正在加入的时候已经存在
-                logger.error(String.format("Failed to join the game with id: %s", request.params(":gameId")));
-                response.status(500);
-                return Collections.EMPTY_MAP;
-            }
-        }, new JsonTransformer());
-        */
+
 
         /**
          * Play the game.
          */
-        //Todo
         post(API_CONTEXT + "/games/:gameId/turns", "application/json", (request, response) -> {
             try {
                 String playerId = gameService.play(request.params(":gameId"), request.body());
@@ -238,7 +205,6 @@ public class GameController {
                 return Collections.EMPTY_MAP;
             }
         }, new JsonTransformer());
-
 
     }
 }
